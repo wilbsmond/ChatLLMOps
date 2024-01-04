@@ -1,7 +1,7 @@
 # LLMOps Chatbot
 I created a Langchain-based RAG app where users can ask questions about LLM in Production. The knowledge is scraped from transcripts of the three "LLM in Production" Conferences playlists on Youtube by The MLOps Community.
 
-My aim is to be able to interact with an up-to-date knowledge base of LLMs, a topic that is moving too fast for me to personally keep up.
+My aim is to be able to interact with an up-to-date knowledge base of LLMs, a topic that is advancing incredibly fast.
 
 Key highlights of the project include:
 - Scraped transcripts of total 125 videos over 3 playlists from Youtube

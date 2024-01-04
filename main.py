@@ -1,5 +1,6 @@
 import os
-from dotenv import load_dotenv
+
+import openai
 import streamlit as st
 
 from langchain.document_loaders import TextLoader
@@ -99,9 +100,6 @@ def handle_style_and_responses(user_question: str) -> None:
             )
 
 if __name__ == "__main__":
-    # Set up env variables
-    load_dotenv()
-
     # Load and preprocess data
     path_transcripts = "./transcripts"
     file_names = get_file_names(path_transcripts)
@@ -116,12 +114,11 @@ if __name__ == "__main__":
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = None
 
-    # Create conversational widgets
+    # Streamlit UI setup
     st.set_page_config(
         page_title="LLMOps Chatbot",
         page_icon=":llama:",
     )
-
     st.title("LLMOps Chatbot")
     st.subheader("Ask about LLM in Production")
     st.markdown(
@@ -131,13 +128,17 @@ if __name__ == "__main__":
     )
     st.image("images/Final-Virtual-Conference-1920-1080px-3--06b07788-ae60-4e91-a57a-b319a09a8deb-1693317630137.png")
 
-    user_question = st.text_input("Ask your question")
-    
-    with st.spinner("Processing..."):
-        if user_question:
-            handle_style_and_responses(user_question)
+    # Input for OpenAI API Key
+    openai_api_key = st.sidebar.text_input("Enter your OpenAI API Key", type="password")
 
-     # create conversation chain
-    st.session_state.conversation = get_conversation_chain(
-        st.session_state.vector_store
-    )
+    if openai_api_key:
+        openai.api_key = openai_api_key  # Set the OpenAI API key for the session
+        user_question = st.text_input("Ask your question")
+        with st.spinner("Processing..."):
+            if user_question:
+                handle_style_and_responses(user_question)
+
+        # create conversation chain
+        st.session_state.conversation = get_conversation_chain(
+            st.session_state.vector_store
+        )
