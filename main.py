@@ -49,7 +49,7 @@ def create_chunks(docs, chunk_size:int=1000, chunk_overlap:int=50):
 def create_or_load_vectorstore(chunks: list) -> Chroma:
     embeddings = OpenAIEmbeddings() #HuggingFaceInstructEmbeddings()
 
-    path_vectordb = "chroma"
+    path_vectordb = "./chroma"
     if not os.path.exists(path_vectordb):
         print("CREATING DB")
         vectorstore = Chroma.from_documents(
