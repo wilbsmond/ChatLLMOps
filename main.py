@@ -46,20 +46,21 @@ def create_chunks(docs, chunk_size:int=1000, chunk_overlap:int=50):
     chunks = text_splitter.split_documents(docs)
     return chunks
 
-def create_or_load_vectorstore(chunks: list, api_key:str) -> FAISS:
+def create_or_load_vectorstore(chunks: list, api_key:str) -> Chroma:
     embeddings = OpenAIEmbeddings(openai_api_key=api_key) #HuggingFaceInstructEmbeddings()
 
-    path_vectordb = "./faiss"
+    path_vectordb = "./chroma"
     if not os.path.exists(path_vectordb):
         print("CREATING DB")
-        vectorstore = FAISS.from_documents(
-            chunks, embeddings
+        vectorstore = Chroma.from_documents(
+            chunks, embeddings, persist_directory=path_vectordb
         )
         vectorstore.save_local(path_vectordb)
     else:
         print("LOADING DB")
-        vectorstore = FAISS.load_local(path_vectordb, embeddings)
-
+        #vectorstore = FAISS.load_local(path_vectordb, embeddings)
+        vectorstore = Chroma(persist_directory=path_vectordb, embedding_function=embeddings)
+        
     return vectorstore
 
 def get_conversation_chain(vectordb:FAISS, api_key=str) -> ConversationalRetrievalChain:
