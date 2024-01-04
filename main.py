@@ -125,7 +125,7 @@ if __name__ == "__main__":
 
     # Input for OpenAI API Key
     openai_api_key = st.sidebar.text_input("Enter your OpenAI API Key", type="password")
-
+    
     if openai_api_key:
         # Create Streamlit state variables to prevent erasing history of interaction
         if "vector_store" not in st.session_state:
