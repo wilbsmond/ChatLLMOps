@@ -65,12 +65,14 @@ def get_conversation_chain(vectordb:Chroma) -> ConversationalRetrievalChain:
     llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
     memory = ConversationBufferMemory(
         memory_key="chat_history",
-        return_messages=True
+        return_messages=True,
+        output_key='answer'
     )
     conversation_chain = ConversationalRetrievalChain.from_llm(
         llm,
         retriever=vectordb.as_retriever(),
-        memory=memory
+        memory=memory,
+        return_source_documents=True
     )
     return conversation_chain
 
