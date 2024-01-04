@@ -3,6 +3,7 @@ import os
 import re
 import requests
 from youtube_transcript_api import YouTubeTranscriptApi
+from youtube_transcript_api._errors import TranscriptsDisabled
 
 def get_video_metadata_from_playlist(playlist_url):
     response = requests.get(playlist_url)
@@ -42,10 +43,14 @@ def get_transcript(playlist_dict):
     # Get transcripts for all videos
     videos_transcript = []
     for video_id in video_ids:
-      transcript_chunks = YouTubeTranscriptApi.get_transcript(video_id)
-      # Parse transcript
-      transcript = ' '.join(chunk["text"] for chunk in transcript_chunks)
-      videos_transcript.append(transcript)
+        try:
+            transcript_chunks = YouTubeTranscriptApi.get_transcript(video_id)
+            # Parse transcript
+            transcript = ' '.join(chunk["text"] for chunk in transcript_chunks)
+            videos_transcript.append(transcript)
+        except TranscriptsDisabled:
+            print(f"Transcript disabled for video ID: {video_id}. Skipping.")
+            videos_transcript.append("Transcript not available")
 
     print('# Transcripts: ', len(videos_transcript))
 
@@ -85,10 +90,13 @@ def save_playlist_transcript_as_txt(playlist_dict, subfolder):
 
 if __name__ == "__main__":
   list_of_playlists = [
-      "https://www.youtube.com/playlist?list=PL3vkEKxWd-us5YvvuvYkjP_QGlgUq3tpA"
+      "https://www.youtube.com/playlist?list=PL3vkEKxWd-us5YvvuvYkjP_QGlgUq3tpA",
+      "https://www.youtube.com/playlist?list=PL3vkEKxWd-uupBSWL-DbVJuCMqXO9Z3Z4",
+      "https://www.youtube.com/playlist?list=PL3vkEKxWd-usFkc3977ZeexYXS3GgDVSO"
   ]
 
   for i, playlist_url in enumerate(list_of_playlists):
+    print(f"Transcripting playlist: {playlist_url}")
     playlist_dict = get_video_metadata_from_playlist(playlist_url)
     playlist_dict = get_transcript(playlist_dict)
     save_playlist_transcript_as_txt(playlist_dict, i)
