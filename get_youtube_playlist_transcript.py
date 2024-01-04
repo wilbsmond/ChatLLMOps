@@ -68,7 +68,7 @@ def sanitize_filename(filename):
     """
     Sanitize the filename by removing or replacing characters that are not allowed in file names.
     """
-    return re.sub(r'[\\/*?:"<>|]', "", filename)
+    return re.sub(r'[\\/*?:"<>|]', "-", filename)
 
 def save_playlist_transcript_as_txt(playlist_dict, subfolder):
   # Directory to save the transcript files (change as needed)
@@ -79,9 +79,9 @@ def save_playlist_transcript_as_txt(playlist_dict, subfolder):
       os.makedirs(save_directory)
 
   # Loop through each video and save its transcript in a separate text file
-  for video in playlist_dict:
-      filename = sanitize_filename(video['title']) + '.txt'
-      file_path = os.path.join(save_directory, filename)
+  for index, video in enumerate(playlist_dict):
+      filename = f"{subfolder}-{index:02d}-{sanitize_filename(video['title'])}.txt"
+      file_path = f"{save_directory}/{filename}"
 
       with open(file_path, 'w', encoding='utf-8') as file:
           file.write(video['transcript'])
@@ -96,6 +96,7 @@ if __name__ == "__main__":
   ]
 
   for i, playlist_url in enumerate(list_of_playlists):
+    i+=1
     print(f"Transcripting playlist: {playlist_url}")
     playlist_dict = get_video_metadata_from_playlist(playlist_url)
     playlist_dict = get_transcript(playlist_dict)
