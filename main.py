@@ -4,9 +4,9 @@ import openai
 import streamlit as st
 
 from langchain.document_loaders import TextLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter, CharacterTextSplitter
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings, HuggingFaceInstructEmbeddings
-from langchain.vectorstores import Chroma, FAISS, Milvus
+from langchain.vectorstores import Chroma, FAISS
 from langchain.chat_models import ChatOpenAI
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
@@ -46,23 +46,24 @@ def create_chunks(docs, chunk_size:int=1000, chunk_overlap:int=50):
     chunks = text_splitter.split_documents(docs)
     return chunks
 
-def create_or_load_vectorstore(chunks: list) -> Chroma:
-    embeddings = OpenAIEmbeddings() #HuggingFaceInstructEmbeddings()
+def create_or_load_vectorstore(chunks: list, api_key:str) -> FAISS:
+    embeddings = OpenAIEmbeddings(openai_api_key=api_key) #HuggingFaceInstructEmbeddings()
 
-    path_vectordb = "./chroma"
+    path_vectordb = "./faiss"
     if not os.path.exists(path_vectordb):
         print("CREATING DB")
-        vectorstore = Chroma.from_documents(
-        chunks, embeddings, persist_directory=path_vectordb
+        vectorstore = FAISS.from_documents(
+            chunks, embeddings
         )
+        vectorstore.save_local(path_vectordb)
     else:
         print("LOADING DB")
-        vectorstore = Chroma(persist_directory=path_vectordb, embedding_function=embeddings)
+        vectorstore = FAISS.load_local(path_vectordb, embeddings)
 
     return vectorstore
 
-def get_conversation_chain(vectordb:Chroma) -> ConversationalRetrievalChain:
-    llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
+def get_conversation_chain(vectordb:FAISS, api_key=str) -> ConversationalRetrievalChain:
+    llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0, openai_api_key=api_key)
     memory = ConversationBufferMemory(
         memory_key="chat_history",
         return_messages=True,
@@ -108,14 +109,6 @@ if __name__ == "__main__":
     docs = load_docs(path_transcripts, file_names)
     chunks = create_chunks(docs, 1000, 50)
 
-    # Create Streamlit state variables to prevent erasing history of interaction
-    if "vector_store" not in st.session_state:
-        st.session_state.vector_store = create_or_load_vectorstore(chunks)
-    if "conversation" not in st.session_state:
-        st.session_state.conversation = None
-    if "chat_history" not in st.session_state:
-        st.session_state.chat_history = None
-
     # Streamlit UI setup
     st.set_page_config(
         page_title="LLMOps Chatbot",
@@ -134,7 +127,14 @@ if __name__ == "__main__":
     openai_api_key = st.sidebar.text_input("Enter your OpenAI API Key", type="password")
 
     if openai_api_key:
-        openai.api_key = openai_api_key  # Set the OpenAI API key for the session
+        # Create Streamlit state variables to prevent erasing history of interaction
+        if "vector_store" not in st.session_state:
+            st.session_state.vector_store = create_or_load_vectorstore(chunks, openai_api_key)
+        if "conversation" not in st.session_state:
+            st.session_state.conversation = None
+        if "chat_history" not in st.session_state:
+            st.session_state.chat_history = None
+
         user_question = st.text_input("Ask your question")
         with st.spinner("Processing..."):
             if user_question:
@@ -142,5 +142,5 @@ if __name__ == "__main__":
 
         # create conversation chain
         st.session_state.conversation = get_conversation_chain(
-            st.session_state.vector_store
+            st.session_state.vector_store, openai_api_key
         )

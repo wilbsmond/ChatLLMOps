@@ -3,5 +3,5 @@ openai
 sentence-transformers 
 tiktoken 
 chromadb
-pysqlite3
+faiss-cpu
 streamlit
