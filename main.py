@@ -1,6 +1,4 @@
 import os
-
-import openai
 import streamlit as st
 
 from langchain.document_loaders import TextLoader
