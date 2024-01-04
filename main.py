@@ -16,6 +16,11 @@ from langchain.prompts import (
     SystemMessagePromptTemplate,
 )
 
+# For Chroma on Streamlit
+__import__('pysqlite3')
+import sys
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
 def get_file_names(path_transcripts:str):
     # List all directories in the 'transcripts' folder
     subdirs = [d for d in os.listdir(path_transcripts) if os.path.isdir(os.path.join(path_transcripts, d))]
